@@ -1,0 +1,229 @@
+<template>
+  <div>
+    <div class="time">
+      <h3 style="font-size: 200%;">{{date}}</h3>
+      <h1 style="font-size: 700%">{{time}}</h1>
+    </div>
+    <div class="weather" style="position: absolute; top: 0%; right: 0%; text-align: right; font-size: 300%">
+      <p>{{City}}</p>
+      <p>{{Temp}}&deg;C</p>
+      
+    </div>
+    <div style="position: absolute; bottom: 10em; text-align: center; width: 50%">
+      <p style="padding-bottom: 0.5em; font-size: 2em">{{newsT}}</p>
+      <p>{{newsD}}</p>
+      <div style="width:50%; left: 25%; position: relative">
+      <v-img contain :src="`${newsImg}`"></v-img>
+      </div>
+    </div>
+      <Time />
+      <DateValue />
+  </div>
+</template>
+
+<script>
+import Time from '@/components/Time.vue'
+import DateValue from '@/components/DateValue.vue'
+
+export default {
+  components: {
+    Time,
+    DateValue,
+  },
+  data: () => ({
+    time: "",
+    date: "",
+    City: null,
+    Temp: null,
+    Wind: null,
+    newsT: null,
+    newsD: null,
+    newsImg: null
+  }),
+  methods: {
+    startTime() {
+      var today = new Date();
+      var h = today.getHours();
+      var m = today.getMinutes();
+      var s = today.getSeconds();
+      var day = today.getDay();
+      var date = today.getDate();
+
+      var month = today.getMonth();
+      day = this.checkDay(day);
+      date = this.checkOrdinal(date);
+      month = this.checkMonth(month);
+      m = this.checkTime(m);
+      s = this.checkTime(s);
+      this.time = h + ":" + m + ":" + s;
+      this.date = day + " " + date + " " + month;
+      setTimeout(this.startTime, 1000);
+      if (m % 10 == 0 && s == 0) {
+        this.checkNews(Math.floor(Math.random() * 10));
+        this.weatherBalloon("2644668");
+      }
+    },
+    checkTime(i) {
+      if (i < 10) {
+        i = "0" + i;
+      }
+      return i;
+    },
+    checkDay(i) {
+      switch (i) {
+        case 0:
+          i = "Sunday";
+          return i;
+          break;
+        case 1:
+          i = "Monday";
+          return i;
+          break;
+        case 2:
+          i = "Tuesday";
+          return i;
+          break;
+        case 3:
+          i = "Wednesday";
+          return i;
+          break;
+        case 4:
+          i = "Thursday";
+          return i;
+          break;
+        case 5:
+          i = "Friday";
+          return i;
+          break;
+        case 6:
+          i = "Saturday";
+          return i;
+      }
+    },
+    checkMonth(i) {
+      switch (i) {
+        case 0:
+          i = "January";
+          return i;
+        case 1:
+          i = "February";
+          return i;
+        case 2:
+          i = "March";
+          return i;
+        case 3:
+          i = "April";
+          return i;
+        case 4:
+          i = "May";
+          return i;
+        case 5:
+          i = "June";
+          return i;
+        case 6:
+          i = "July";
+          return i;
+        case 7:
+          i = "August";
+          return i;
+        case 8:
+          i = "September";
+          return i;
+        case 9:
+          i = "October";
+          return i;
+        case 10:
+          i = "November";
+          return i;
+        case 11:
+          i = "December";
+          return i;
+      }
+    },
+    checkOrdinal(i) {
+      if (i > 3 && i < 21) {
+        i = i + "th";
+        return i;
+      }
+      switch (i % 10) {
+        case 1:
+          i = i + "st";
+          return i;
+        case 2:
+          i = i + "nd";
+          return i;
+        case 3:
+          i = i + "rd";
+          return i;
+        default:
+          i = i + "th";
+          return i;
+      }
+    },
+    weatherBalloon(cityID) {
+      var key = "5f88303049ce762c6f22f7a4da73600a";
+      let self = this;
+      fetch(
+        "https://api.openweathermap.org/data/2.5/weather?id=" +
+          cityID +
+          "&appid=" +
+          key
+      )
+        .then(function(resp) {
+          return resp.json();
+        })
+        .then(function(data) {
+          console.log(data);
+          self.City = data.name;
+          self.Temp = Math.round(parseFloat(data.main.temp) - 273.15);
+          self.Wind =
+            "Wind speed " +
+            data.wind.speed +
+            " Wind direction " +
+            data.wind.deg;
+        });
+    },
+    checkNews(i) {
+      let self = this;
+      var url =
+        "http://newsapi.org/v2/top-headlines?" +
+        "sources=bbc-news&" +
+        "apiKey=666b8340d8e243ba8c0fd5bad09cdf8b";
+      var req = new Request(url);
+      fetch(req)
+        .then(response => response.json())
+        .then(({ articles }) => {
+          console.log(articles);
+          self.newsT = articles[i].title;
+          self.newsD = articles[i].description;
+          self.newsImg = articles[i].urlToImage;
+          
+        });
+    }
+  },
+
+  mounted() {
+    this.startTime();
+    this.weatherBalloon("2644668");
+    this.checkNews(Math.floor(Math.random() * 10));
+  }
+};
+</script>
+
+<style>
+@font-face {
+  font-family: "Product Sans";
+  font-style: normal;
+  font-weight: 700;
+  src: local("Open Sans"), local("OpenSans"),
+    url(https://fonts.gstatic.com/s/productsans/v5/HYvgU2fE2nRJvZ5JFAumwegdm0LZdjqr5-oayXSOefg.woff2)
+      format("woff2");
+}
+
+* {
+  text-transform: none !important;
+  letter-spacing: 0.04em;
+  font-family: Product Sans;
+  color: white;
+}
+</style>
